@@ -2,21 +2,32 @@ import createDataContext from './createDataContext'
 
 const blogReducer = (state, action) => {
     switch (action.type) {
-        case 'add_blogpost':
-            console.log('Add blog post hit')
-            return [...state, {id: Math.floor(Math.random() * 99999),
-                title: `Blog Post #${state.length + 1}`}]
+        case 'edit_blogpost':
+            return state.map((blogPost) => {
+                if (blogPost.id === action.payload.id) {
+                    return action.payload
+                } else {
+                    return blogPost
+                }
+            })
         case 'delete_blogpost':
-            console.log('Delete blog post hit')
             return state.filter(blogPost => blogPost.id !== action.payload)
+        case 'add_blogpost':
+            return [...state, {
+                id: Math.floor(Math.random() * 99999),
+                title: action.payload.title,
+                content: action.payload.content
+            }]
+        
         default:
             return state
     }
 }
     
-    const addBlogPost = (dispatch) => {
-        return () => {
-        dispatch ({ type: 'add_blogpost'})
+    const addBlogPost = dispatch => {
+        return (title, content, callback) => {
+        dispatch ({ type: 'add_blogpost', payload: {title, content} })
+        callback()
         }
     }
     const deleteBlogPost = dispatch => {
@@ -24,9 +35,18 @@ const blogReducer = (state, action) => {
             dispatch({type: 'delete_blogpost', payload: id})
         }
     }
+
+    const editBlogPost = dispatch => {
+        return (id, title, content) => {
+            dispatch({
+                type: 'edit_blogpost',
+                payload: {id, title, content}
+            })
+        }
+    }
     
     export const {Context, Provider} = createDataContext(
         blogReducer,
-        {addBlogPost, deleteBlogPost},
-        [],
+        {addBlogPost, deleteBlogPost, editBlogPost},
+        [{title: 'TEST POST', content: 'TEST CONTENT', id: 1}],
         )
